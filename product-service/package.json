@@ -1,0 +1,24 @@
+{
+  "name": "product-service",
+  "version": "1.0.0",
+  "description": "Product Service — catalog, categories, inventory",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.1",
+    "express": "^4.18.2",
+    "express-validator": "^7.0.1",
+    "helmet": "^7.1.0",
+    "mongoose": "^8.1.1",
+    "morgan": "^1.10.0",
+    "slugify": "^1.6.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.3"
+  }
+}
+

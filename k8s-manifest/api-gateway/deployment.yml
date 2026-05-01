@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: api-gateway-depl
+  namespace: ecommerce
+
+spec:
+  
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: api-gateway-app
+
+  template:
+    metadata:
+      labels:
+        app: api-gateway-app
+
+    spec:
+      containers:
+        - name: api-gateway
+          image: chaitanyaaaa/ecommerce-microservices-api-gateway:v1
+          ports:
+            - containerPort: 3000
+
+          envFrom:
+            - configMapRef:
+                name: api-gateway-configmap
+        
+            - secretRef:
+                name: app-secrets

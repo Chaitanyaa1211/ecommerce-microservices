@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+
+metadata:
+  name: product-service-configmap
+  namespace: ecommerce
+
+data:
+  PORT: "3002"
+  MONGO_URI: mongodb://admin:secret123@mongodb:27017/productdb?authSource=admin
+  JWT_EXPIRES_IN: 7d
+  NODE_ENV: development

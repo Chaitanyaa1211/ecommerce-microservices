@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: product-service-depl
+  namespace: ecommerce
+
+spec:
+
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: product-service-app
+
+  template:
+    metadata:
+      labels:
+        app: product-service-app
+
+    spec:
+      containers:
+        - name: product-service
+          image: chaitanyaaaa/ecommerce-microservices-product-service:v1
+          ports:
+            - containerPort: 3002
+
+          envFrom:
+            - configMapRef:
+                name: product-service-configmap
+
+            - secretRef:
+                name: app-secrets

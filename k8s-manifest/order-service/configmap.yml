@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+
+metadata:
+  name: order-service-configmap
+  namespace: ecommerce
+
+data:
+  PORT: "3004"
+  MONGO_URI: mongodb://admin:secret123@mongodb:27017/orderdb?authSource=admin
+  PRODUCT_SERVICE_URL: http://product-service:3002
+  CART_SERVICE_URL: http://cart-service:3003
+  PAYMENT_SERVICE_URL: http://payment-service:3005
+  NODE_ENV: development

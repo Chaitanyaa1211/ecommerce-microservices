@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: user-service-del
+  namespace: ecommerce
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: user-service-app
+  template:
+    metadata:
+      labels:
+        app: user-service-app
+
+    spec:
+      containers:
+        - name: user-service
+          image: chaitanyaaaa/ecommerce-microservices-user-service:v1
+          ports:
+            - containerPort: 3001
+          envFrom:
+            - configMapRef:
+                name: user-service-configmap
+            - secretRef:
+                name: app-secrets

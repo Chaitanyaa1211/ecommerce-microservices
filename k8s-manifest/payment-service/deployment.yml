@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: payment-service-depl
+  namespace: ecommerce
+
+spec:
+
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: payment-service-app
+
+  template:
+    metadata:
+      labels:
+        app: payment-service-app
+
+    spec:
+      containers:
+        - name: payment-service
+          image: chaitanyaaaa/ecommerce-microservices-payment-service:v1
+          ports:
+            - containerPort: 3005
+
+          envFrom:
+            - configMapRef:
+                name: payment-service-configmap
+            - secretRef:
+                name: app-secrets
+
+

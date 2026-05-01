@@ -1,0 +1,153 @@
+version: "3.9"
+
+networks:
+  ecommerce-net:
+    driver: bridge
+
+volumes:
+  mongo-data:
+
+services:
+  # ─────────────────────────────────────────
+  #  Single MongoDB instance, multiple DBs
+  # ─────────────────────────────────────────
+  mongodb:
+    image: mongo:7
+    container_name: ecommerce-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: secret123
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - ecommerce-net
+
+  # ─────────────────────────────────────────
+  #  API Gateway  :3000
+  # ─────────────────────────────────────────
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      JWT_SECRET: your_super_secret_jwt_key_change_in_production
+      USER_SERVICE_URL: http://user-service:3001
+      PRODUCT_SERVICE_URL: http://product-service:3002
+      CART_SERVICE_URL: http://cart-service:3003
+      ORDER_SERVICE_URL: http://order-service:3004
+      PAYMENT_SERVICE_URL: http://payment-service:3005
+      NODE_ENV: development
+    depends_on:
+      - user-service
+      - product-service
+      - cart-service
+      - order-service
+      - payment-service
+    networks:
+      - ecommerce-net
+
+  # ─────────────────────────────────────────
+  #  User Service  :3001
+  # ─────────────────────────────────────────
+  user-service:
+    build: ./user-service
+    container_name: user-service
+    restart: unless-stopped
+    environment:
+      PORT: 3001
+      MONGO_URI: mongodb://admin:secret123@mongodb:27017/userdb?authSource=admin
+      JWT_SECRET: your_super_secret_jwt_key_change_in_production
+      JWT_EXPIRES_IN: 7d
+      INTERNAL_SERVICE_TOKEN: internal_service_token_change_in_production
+      NODE_ENV: development
+    depends_on:
+      - mongodb
+    networks:
+      - ecommerce-net
+
+  # ─────────────────────────────────────────
+  #  Product Service  :3002
+  # ─────────────────────────────────────────
+  product-service:
+    build: ./product-service
+    container_name: product-service
+    restart: unless-stopped
+    environment:
+      PORT: 3002
+      MONGO_URI: mongodb://admin:secret123@mongodb:27017/productdb?authSource=admin
+      JWT_SECRET: your_super_secret_jwt_key_change_in_production
+      INTERNAL_SERVICE_TOKEN: internal_service_token_change_in_production
+      NODE_ENV: development
+    depends_on:
+      - mongodb
+    networks:
+      - ecommerce-net
+
+  # ─────────────────────────────────────────
+  #  Cart Service  :3003
+  # ─────────────────────────────────────────
+  cart-service:
+    build: ./cart-service
+    container_name: cart-service
+    restart: unless-stopped
+    environment:
+      PORT: 3003
+      MONGO_URI: mongodb://admin:secret123@mongodb:27017/cartdb?authSource=admin
+      JWT_SECRET: your_super_secret_jwt_key_change_in_production
+      PRODUCT_SERVICE_URL: http://product-service:3002
+      INTERNAL_SERVICE_TOKEN: internal_service_token_change_in_production
+      NODE_ENV: development
+    depends_on:
+      - mongodb
+      - product-service
+    networks:
+      - ecommerce-net
+
+  # ─────────────────────────────────────────
+  #  Order Service  :3004
+  # ─────────────────────────────────────────
+  order-service:
+    build: ./order-service
+    container_name: order-service
+    restart: unless-stopped
+    environment:
+      PORT: 3004
+      MONGO_URI: mongodb://admin:secret123@mongodb:27017/orderdb?authSource=admin
+      JWT_SECRET: your_super_secret_jwt_key_change_in_production
+      PRODUCT_SERVICE_URL: http://product-service:3002
+      CART_SERVICE_URL: http://cart-service:3003
+      PAYMENT_SERVICE_URL: http://payment-service:3005
+      INTERNAL_SERVICE_TOKEN: internal_service_token_change_in_production
+      NODE_ENV: development
+    depends_on:
+      - mongodb
+      - product-service
+      - cart-service
+    networks:
+      - ecommerce-net
+
+  # ─────────────────────────────────────────
+  #  Payment Service  :3005
+  # ─────────────────────────────────────────
+  payment-service:
+    build: ./payment-service
+    container_name: payment-service
+    restart: unless-stopped
+    environment:
+      PORT: 3005
+      MONGO_URI: mongodb://admin:secret123@mongodb:27017/paymentdb?authSource=admin
+      JWT_SECRET: your_super_secret_jwt_key_change_in_production
+      ORDER_SERVICE_URL: http://order-service:3004
+      INTERNAL_SERVICE_TOKEN: internal_service_token_change_in_production
+      NODE_ENV: development
+    depends_on:
+      - mongodb
+    networks:
+      - ecommerce-net
+

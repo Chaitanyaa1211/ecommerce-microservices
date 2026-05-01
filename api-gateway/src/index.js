@@ -16,10 +16,9 @@ app.use(helmet());
 app.use(cors({ origin: "*", methods: ["GET", "POST", "PUT", "DELETE", "PATCH"] }));
 app.use(morgan("combined"));
 
-// Global rate limiter
 app.use(
   rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
+    windowMs: 15 * 60 * 1000,
     max: 200,
     message: { success: false, message: "Too many requests, slow down!" },
     standardHeaders: true,
@@ -27,7 +26,6 @@ app.use(
   })
 );
 
-// Strict rate limiter for auth routes
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
@@ -53,54 +51,121 @@ app.get("/health", (req, res) => {
 });
 
 // ──────────────────────────────────────────
-//  Proxy helper
-// ──────────────────────────────────────────
-const proxy = (target, pathRewrite = {}) =>
-  createProxyMiddleware({
-    target,
-    changeOrigin: true,
-    pathRewrite,
-    on: {
-      error: (err, req, res) => {
-        console.error(`[Gateway] Proxy error → ${target}:`, err.message);
-        res.status(502).json({ success: false, message: "Service temporarily unavailable." });
-      },
-    },
-  });
-
-// ──────────────────────────────────────────
 //  Route Definitions
 // ──────────────────────────────────────────
 
-// USER SERVICE — public routes (no auth)
+// USER SERVICE
 app.use(
-  ["/api/users/register", "/api/users/login"],
-  authLimiter,
-  proxy(process.env.USER_SERVICE_URL)
+  "/api/users",
+  (req, res, next) => {
+    const publicPaths = ["/register", "/login"];
+    const isPublic = publicPaths.some(p => req.path === p && req.method === "POST");
+    if (isPublic) return authLimiter(req, res, next);
+    return verifyToken(req, res, next);
+  },
+  createProxyMiddleware({
+    target: process.env.USER_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: (path, req) => req.originalUrl,
+    on: {
+      error: (err, req, res) => {
+        console.error("[Gateway] user-service error:", err.message);
+        res.status(502).json({ success: false, message: "User service unavailable." });
+      },
+    },
+  })
 );
 
-// USER SERVICE — protected routes
-app.use("/api/users", verifyToken, proxy(process.env.USER_SERVICE_URL));
-
-// PRODUCT SERVICE — public GET routes (no auth needed for browsing)
+// PRODUCT SERVICE
 app.use(
-  ["/api/products", "/api/categories"],
+  "/api/products",
   (req, res, next) => {
-    // Allow GETs without auth; require auth for POST/PUT/DELETE
     if (req.method === "GET") return next();
     verifyToken(req, res, next);
   },
-  proxy(process.env.PRODUCT_SERVICE_URL)
+  createProxyMiddleware({
+    target: process.env.PRODUCT_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: (path, req) => req.originalUrl,
+    on: {
+      error: (err, req, res) => {
+        console.error("[Gateway] product-service error:", err.message);
+        res.status(502).json({ success: false, message: "Product service unavailable." });
+      },
+    },
+  })
 );
 
-// CART SERVICE — always requires auth
-app.use("/api/cart", verifyToken, proxy(process.env.CART_SERVICE_URL));
+// CATEGORIES
+app.use(
+  "/api/categories",
+  (req, res, next) => {
+    if (req.method === "GET") return next();
+    verifyToken(req, res, next);
+  },
+  createProxyMiddleware({
+    target: process.env.PRODUCT_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: (path, req) => req.originalUrl,
+    on: {
+      error: (err, req, res) => {
+        console.error("[Gateway] product-service error:", err.message);
+        res.status(502).json({ success: false, message: "Product service unavailable." });
+      },
+    },
+  })
+);
 
-// ORDER SERVICE — always requires auth
-app.use("/api/orders", verifyToken, proxy(process.env.ORDER_SERVICE_URL));
+// CART SERVICE
+app.use(
+  "/api/cart",
+  verifyToken,
+  createProxyMiddleware({
+    target: process.env.CART_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: (path, req) => req.originalUrl,
+    on: {
+      error: (err, req, res) => {
+        console.error("[Gateway] cart-service error:", err.message);
+        res.status(502).json({ success: false, message: "Cart service unavailable." });
+      },
+    },
+  })
+);
 
-// PAYMENT SERVICE — always requires auth
-app.use("/api/payments", verifyToken, proxy(process.env.PAYMENT_SERVICE_URL));
+// ORDER SERVICE
+app.use(
+  "/api/orders",
+  verifyToken,
+  createProxyMiddleware({
+    target: process.env.ORDER_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: (path, req) => req.originalUrl,
+    on: {
+      error: (err, req, res) => {
+        console.error("[Gateway] order-service error:", err.message);
+        res.status(502).json({ success: false, message: "Order service unavailable." });
+      },
+    },
+  })
+);
+
+// PAYMENT SERVICE
+app.use(
+  "/api/payments",
+  verifyToken,
+  createProxyMiddleware({
+    target: process.env.PAYMENT_SERVICE_URL,
+    changeOrigin: true,
+    pathRewrite: (path, req) => req.originalUrl,
+    on: {
+      error: (err, req, res) => {
+        console.error("[Gateway] payment-service error:", err.message);
+        res.status(502).json({ success: false, message: "Payment service unavailable." });
+      },
+    },
+  })
+);
 
 // ──────────────────────────────────────────
 //  404 Fallback
@@ -121,4 +186,3 @@ app.listen(PORT, () => {
   console.log(`   ORDER    → ${process.env.ORDER_SERVICE_URL}`);
   console.log(`   PAYMENT  → ${process.env.PAYMENT_SERVICE_URL}`);
 });
-

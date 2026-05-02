@@ -19,6 +19,7 @@ spec:
     spec:
       containers:
         - name: user-service
+          imagePullPolicy: Always
           image: chaitanyaaaa/ecommerce-microservices-user-service:v1
           ports:
             - containerPort: 3001

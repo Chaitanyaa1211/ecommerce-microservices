@@ -23,7 +23,7 @@ spec:
       containers:
         - name: cart-service
           image: chaitanyaaaa/ecommerce-microservices-cart-service:v1
-          
+          imagePullPolicy: Always
           ports:
             - containerPort: 3003
           

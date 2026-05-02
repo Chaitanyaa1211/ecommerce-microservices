@@ -19,27 +19,27 @@ pipeline{
         // Not using parallel block since i have slow pc but in future ill update the pipeline for faster builds :)
         // also for debugging ill update this stage with builds stage block for each service in future right now ill just test 
         stage("BUILD") {
-            steps{
+            steps {
                 dir("user-service") {
-                    sh "docker build -t ${USER_SERVICE_IMAGE}:${TAG} ."
-                }    
+                    sh "docker build --provenance=false -t ${USER_SERVICE_IMAGE}:${TAG} ."
+                }
                 dir("cart-service") {
-                    sh "docker build -t ${CART_SERVICE_IMAGE}:${TAG} ."
+                    sh "docker build --provenance=false -t ${CART_SERVICE_IMAGE}:${TAG} ."
                 }
                 dir("order-service") {
-                    sh "docker build -t ${ORDER_SERVICE_IMAGE}:${TAG} ."
+                    sh "docker build --provenance=false -t ${ORDER_SERVICE_IMAGE}:${TAG} ."
                 }
                 dir("product-service") {
-                    sh "docker build -t ${PRODUCT_SERVICE_IMAGE}:${TAG} ."
+                    sh "docker build --provenance=false -t ${PRODUCT_SERVICE_IMAGE}:${TAG} ."
                 }
                 dir("payment-service") {
-                    sh "docker build -t ${PAYMENT_SERVICE_IMAGE}:${TAG} ."
+                    sh "docker build --provenance=false -t ${PAYMENT_SERVICE_IMAGE}:${TAG} ."
                 }
                 dir("api-gateway") {
-                    sh "docker build -t ${API_GATEWAY_IMAGE}:${TAG} ."
+                    sh "docker build --provenance=false -t ${API_GATEWAY_IMAGE}:${TAG} ."
                 }
             }
-        }
+}
         stage("PUSH") {
             steps {
                 withCredentials([usernamePassword(credentialsId:"DockerHub-Creds", usernameVariable:"USER", passwordVariable:"PASS")]) {

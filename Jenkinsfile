@@ -3,7 +3,10 @@ pipeline{
     
     environment{
         DOCKER_REPO             = "chaitanyaaaa/ecommerce-microservices"
-        API_GATEWAY_IMAGE       = "${DOCKER_REPO}-api-gateway"
+        DOCKER_BUILDKIT       	= "1"
+    	BUILDX_NO_DEFAULT_ATTESTATIONS = "1"
+	
+	API_GATEWAY_IMAGE       = "${DOCKER_REPO}-api-gateway"
         USER_SERVICE_IMAGE      = "${DOCKER_REPO}-user-service"
         CART_SERVICE_IMAGE      = "${DOCKER_REPO}-cart-service"
         ORDER_SERVICE_IMAGE     = "${DOCKER_REPO}-order-service"

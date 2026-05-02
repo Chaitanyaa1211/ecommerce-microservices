@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: user-service-del
+  namespace: {{ .Values.namespace }}
+
+spec:
+  replicas: {{ .Values.userService.replicaCount }}
+
+  selector:
+    matchLabels:
+      app: user-service-app
+  template:
+    metadata:
+      labels:
+        app: user-service-app
+
+    spec:
+      containers:
+        - name: user-service
+          imagePullPolicy: {{ .Values.userService.image.pullPolicy }}
+          image: {{ .Values.userService.image.repository }}:{{ .Values.userService.image.tag }}
+          ports:
+            - containerPort: {{ .Values.userService.service.targetPort }}
+          envFrom:
+            - configMapRef:
+                name: user-service-configmap
+            - secretRef:
+                name: app-secrets

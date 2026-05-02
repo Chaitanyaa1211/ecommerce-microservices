@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: mongodb-depl
+  namespace: {{ .Values.namespace }}
+
+spec:
+  replicas: {{ .Values.mongodb.replicaCount }}
+
+  selector:
+    matchLabels:
+      app: mongodb-app
+
+  template:
+    metadata:
+      labels:
+        app: mongodb-app
+
+    spec:
+      containers:
+        - name: mongodb
+          image: {{ .Values.mongodb.image.repository }}:{{ .Values.mongodb.image.tag }}
+          ports:
+            - containerPort: {{ .Values.mongodb.service.targetPort }}
+
+          envFrom:
+            - secretRef:
+                name: app-secrets
+
+          volumeMounts:
+            - name: mongodb-data-storage
+              mountPath: /data/db
+
+      volumes:
+        - name: mongodb-data-storage
+          persistentVolumeClaim:
+            claimName: mongodb-pvc

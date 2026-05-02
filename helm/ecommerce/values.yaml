@@ -1,0 +1,80 @@
+namespace: ecommerce
+
+secrets:
+  jwtSecret: your_super_secret_jwt_key_change_in_production
+  internalServiceToken: internal_service_token_change_in_production
+  mongoUsername: admin
+  mongoPassword: secret123
+
+mongodb:
+  replicaCount: 1
+  image:
+    repository: mongo
+    tag: "7"
+  service:
+    type: ClusterIP
+    port: 27017
+    targetPort: 27017
+  pvc:
+    storage: 1Gi
+
+apiGateway:
+  replicaCount: 1
+  image:
+    repository: chaitanyaaaa/ecommerce-microservices-api-gateway
+    tag: "v1"
+    pullPolicy: Always
+  service:
+    port: 80
+    targetPort: 3000
+    nodePort: 30007
+
+userService:
+  replicaCount: 1
+  image:
+    repository: chaitanyaaaa/ecommerce-microservices-user-service
+    tag: "v1"
+    pullPolicy: Always
+  service:
+    port: 3001
+    targetPort: 3001
+
+productService:
+  replicaCount: 1
+  image:
+    repository: chaitanyaaaa/ecommerce-microservices-product-service
+    tag: "v1"
+    pullPolicy: Always
+  service:
+    port: 3002
+    targetPort: 3002
+
+cartService:
+  replicaCount: 1
+  image:
+    repository: chaitanyaaaa/ecommerce-microservices-cart-service
+    tag: "v1"
+    pullPolicy: Always
+  service:
+    port: 3003
+    targetPort: 3003
+
+orderService:
+  replicaCount: 1
+  image:
+    repository: chaitanyaaaa/ecommerce-microservices-order-service
+    tag: "v1"
+    pullPolicy: Always
+  service:
+    port: 3004
+    targetPort: 3004
+
+paymentService:
+  replicaCount: 1
+  image:
+    repository: chaitanyaaaa/ecommerce-microservices-payment-service
+    tag: "v1"
+    pullPolicy: Always
+  service:
+    port: 3005
+    targetPort: 3005

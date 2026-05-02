@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: mongodb
+  namespace: {{ .Values.namespace }}
+
+spec:
+
+  type: {{ .Values.mongodb.service.type }}
+
+  selector:
+      app: mongodb-app
+
+  ports:
+    - port: {{ .Values.mongodb.service.port }}
+      targetPort: {{ .Values.mongodb.service.targetPort }}

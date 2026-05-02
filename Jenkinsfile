@@ -3,7 +3,7 @@ pipeline{
     
     environment{
         DOCKER_REPO             = "chaitanyaaaa/ecommerce-microservices"
-        DOCKER_BUILDKIT       	= "1"
+        DOCKER_BUILDKIT       	= "0"
     	BUILDX_NO_DEFAULT_ATTESTATIONS = "1"
 	
 	API_GATEWAY_IMAGE       = "${DOCKER_REPO}-api-gateway"
@@ -21,22 +21,22 @@ pipeline{
         stage("BUILD") {
             steps {
                 dir("user-service") {
-                    sh "docker build --provenance=false -t ${USER_SERVICE_IMAGE}:${TAG} ."
+                    sh "docker build -t ${USER_SERVICE_IMAGE}:${TAG} ."
                 }
                 dir("cart-service") {
-                    sh "docker build --provenance=false -t ${CART_SERVICE_IMAGE}:${TAG} ."
+                    sh "docker build -t ${CART_SERVICE_IMAGE}:${TAG} ."
                 }
                 dir("order-service") {
-                    sh "docker build --provenance=false -t ${ORDER_SERVICE_IMAGE}:${TAG} ."
+                    sh "docker build  -t ${ORDER_SERVICE_IMAGE}:${TAG} ."
                 }
                 dir("product-service") {
-                    sh "docker build --provenance=false -t ${PRODUCT_SERVICE_IMAGE}:${TAG} ."
+                    sh "docker build -t ${PRODUCT_SERVICE_IMAGE}:${TAG} ."
                 }
                 dir("payment-service") {
-                    sh "docker build --provenance=false -t ${PAYMENT_SERVICE_IMAGE}:${TAG} ."
+                    sh "docker build -t ${PAYMENT_SERVICE_IMAGE}:${TAG} ."
                 }
                 dir("api-gateway") {
-                    sh "docker build --provenance=false -t ${API_GATEWAY_IMAGE}:${TAG} ."
+                    sh "docker build -t ${API_GATEWAY_IMAGE}:${TAG} ."
                 }
             }
 }
@@ -88,3 +88,4 @@ pipeline{
         }
     }    
 }
+

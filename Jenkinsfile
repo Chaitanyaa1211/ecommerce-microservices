@@ -12,8 +12,10 @@ pipeline{
         ORDER_SERVICE_IMAGE     = "${DOCKER_REPO}-order-service"
         PRODUCT_SERVICE_IMAGE   = "${DOCKER_REPO}-product-service"
         PAYMENT_SERVICE_IMAGE   = "${DOCKER_REPO}-payment-service"
-        TAG = "v1"
-        //TAG_UPDATE = "1.${BUILD_NUMBER}"  << use this for image tagging/versioning , im not using it takes a lot of time for pipeline to run since i have slow upload speed :(
+        TAG = "1.${BUILD_NUMBER}"
+        HELM_RELEASE            = "ecommerce"
+        HELM_CHART              = "./helm/ecommerce"
+        NAMESPACE               = "ecommerce"
     }
     stages{
         // Not using parallel block since i have slow pc but in future ill update the pipeline for faster builds :)
@@ -27,7 +29,7 @@ pipeline{
                     sh "docker build -t ${CART_SERVICE_IMAGE}:${TAG} ."
                 }
                 dir("order-service") {
-                    sh "docker build  -t ${ORDER_SERVICE_IMAGE}:${TAG} ."
+                    sh "docker build -t ${ORDER_SERVICE_IMAGE}:${TAG} ."
                 }
                 dir("product-service") {
                     sh "docker build -t ${PRODUCT_SERVICE_IMAGE}:${TAG} ."
@@ -57,35 +59,33 @@ pipeline{
             }
         }
         stage("DEPLOY") {
-            // ill updatet this with helm in comming days for now its just for testing
-            steps{
-                withCredentials([file(credentialsId:"kubeconfig", variable: "KUBECONFIG")]) {
-                    dir("k8s-manifest") {
-                        sh """
-                            kubectl apply -f namespace.yml
-                            kubectl apply -f ./secrets/app-secrets.yml
-                            kubectl apply -f ./mongodb/
-                            kubectl apply -f ./user-service/
-                            kubectl apply -f ./product-service/
-                            kubectl apply -f ./cart-service/
-                            kubectl apply -f ./order-service/
-                            kubectl apply -f ./payment-service/
-                            kubectl apply -f ./api-gateway/  
-                        """
-                        // for now there is no changes in dpl so pods wont restart so adding this, will update the proper updates later with helm
-                        sh "kubectl rollout restart deployment -n ecommerce"
-                    }
+            steps {
+                withCredentials([file(credentialsId: "kubeconfig", variable: "KUBECONFIG")]) {
+                    sh """
+                        export KUBECONFIG=$KUBECONFIG
+                        helm upgrade --install ${HELM_RELEASE} ${HELM_CHART} \
+                            --namespace ${NAMESPACE} \
+                            --create-namespace \
+                            --set apiGateway.image.tag=${TAG} \
+                            --set userService.image.tag=${TAG} \
+                            --set productService.image.tag=${TAG} \
+                            --set cartService.image.tag=${TAG} \
+                            --set orderService.image.tag=${TAG} \
+                            --set paymentService.image.tag=${TAG}
+                    """
                 }
             }
         }
         stage("VERIFY DEPLOYMENT") {
             steps{
-                sh """
-                    kubectl get svc -n ecommerce
-                    kubectl get pods -n ecommerce
-                """
+                 withCredentials([file(credentialsId:"kubeconfig", variable: "KUBECONFIG")]) {
+                    sh """
+                        export KUBECONFIG=$KUBECONFIG
+                        kubectl get all -n ecommerce
+                       """
+                }
             }
+
         }
     }    
 }
-

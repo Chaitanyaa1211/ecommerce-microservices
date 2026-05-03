@@ -351,23 +351,6 @@ Register → Login (get token) → Browse products → Add to cart
 
 ---
 
-## 🗺️ What's Next (Roadmap)
-
-| Feature | Description |
-|---------|-------------|
-| **GitHub Webhook** | Trigger Jenkins automatically on `git push` |
-| **Parallel builds** | Build all 6 services simultaneously in Jenkins |
-| **Per-service detection** | Only build/deploy the service that changed |
-| **Redis Cache** | Cache product catalog in API Gateway |
-| **Razorpay / Stripe** | Replace mock payment gateway |
-| **RabbitMQ** | Replace sync HTTP calls with async message queue |
-| **Prometheus + Grafana** | Metrics and dashboards |
-| **Jest Tests** | Unit and integration tests → add test stage to pipeline |
-| **Ingress + TLS** | Replace NodePort with Nginx Ingress + Let's Encrypt |
-| **EKS / GKE** | Deploy to cloud Kubernetes instead of local |
-
----
-
 ## 👨‍💻 Author
 
 **Chaitanya Patil**

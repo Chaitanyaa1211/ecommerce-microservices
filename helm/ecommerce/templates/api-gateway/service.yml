@@ -5,7 +5,7 @@ metadata:
   name: api-gateway-service
   namespace: {{ .Values.namespace }}
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: api-gateway-app
 
@@ -13,4 +13,3 @@ spec:
     - protocol: TCP
       port: {{ .Values.apiGateway.service.port }}
       targetPort: {{ .Values.apiGateway.service.targetPort }}
-      nodePort: {{ .Values.apiGateway.service.nodePort }}

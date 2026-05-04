@@ -6,6 +6,10 @@ secrets:
   mongoUsername: admin
   mongoPassword: secret123
 
+ingress:
+  enabled: true
+  host: shopflow.local
+
 mongodb:
   replicaCount: 1
   image:
@@ -27,7 +31,6 @@ apiGateway:
   service:
     port: 80
     targetPort: 3000
-    nodePort: 30007
 
 userService:
   replicaCount: 1

@@ -6,6 +6,7 @@ metadata:
   namespace: {{ .Values.namespace }}
 spec:
   type: ClusterIP
+
   selector:
     app: api-gateway-app
 

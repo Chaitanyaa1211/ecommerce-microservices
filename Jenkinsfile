@@ -74,6 +74,7 @@ pipeline {
                 withCredentials([file(credentialsId: "kubeconfig", variable: "KUBECONFIG")]) {
                     sh """
                         export KUBECONFIG=$KUBECONFIG
+			kubectl create namespace ${MONITORING_NAMESPACE} || true
                         helm upgrade --install ${HELM_RELEASE} ${HELM_CHART} \
                             --namespace ${MICROSERVICES_NAMESPACE} --create-namespace \
                             --set apiGateway.image.tag=${TAG} \

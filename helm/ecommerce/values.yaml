@@ -9,7 +9,8 @@ secrets:
 ingress:
   enabled: true
   host: shopflow.local
-
+  grafana:
+    host: grafana.local
 mongodb:
   replicaCount: 1
   image:

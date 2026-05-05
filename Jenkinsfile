@@ -16,7 +16,7 @@ pipeline {
         HELM_CHART              = "./helm/ecommerce"
         MICROSERVICES_NAMESPACE = "ecommerce"
         MONITORING_NAMESPACE    = "monitoring"
-        MONITORING_RELEASE      = "monitoring"
+        MONITORING_RELEASE      = "monitoring-release"
     }
 
     stages {

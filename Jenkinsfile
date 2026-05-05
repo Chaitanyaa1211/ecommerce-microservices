@@ -2,23 +2,27 @@ pipeline{
     agent any
     
     environment{
-        DOCKER_REPO             = "chaitanyaaaa/ecommerce-microservices"
-        DOCKER_BUILDKIT       	= "0"
-    	BUILDX_NO_DEFAULT_ATTESTATIONS = "1"
-	
-	API_GATEWAY_IMAGE       = "${DOCKER_REPO}-api-gateway"
-        USER_SERVICE_IMAGE      = "${DOCKER_REPO}-user-service"
-        CART_SERVICE_IMAGE      = "${DOCKER_REPO}-cart-service"
-        ORDER_SERVICE_IMAGE     = "${DOCKER_REPO}-order-service"
-        PRODUCT_SERVICE_IMAGE   = "${DOCKER_REPO}-product-service"
-        PAYMENT_SERVICE_IMAGE   = "${DOCKER_REPO}-payment-service"
-        TAG = "1.${BUILD_NUMBER}"
-        HELM_RELEASE            = "ecommerce"
-        HELM_CHART              = "./helm/ecommerce"
-        NAMESPACE               = "ecommerce"
-	MONITORING_NAMESPACE	= "monitoring"
+        DOCKER_REPO             =   "chaitanyaaaa/ecommerce-microservices"
+        BUILDX_NO_DEFAULT_ATTESTATIONS ="1"
+        API_GATEWAY_IMAGE       =   "${DOCKER_REPO}-api-gateway"
+        USER_SERVICE_IMAGE      =   "${DOCKER_REPO}-user-service"
+        CART_SERVICE_IMAGE      =   "${DOCKER_REPO}-cart-service"
+        ORDER_SERVICE_IMAGE     =   "${DOCKER_REPO}-order-service"
+        PRODUCT_SERVICE_IMAGE   =   "${DOCKER_REPO}-product-service"
+        PAYMENT_SERVICE_IMAGE   =   "${DOCKER_REPO}-payment-service"
+        TAG                     =   "1.${BUILD_NUMBER}"
+        HELM_RELEASE            =   "ecommerce"
+        HELM_CHART              =   "./helm/ecommerce"
+        MICROSERVICES_NAMESPACE =   "ecommerce"
+        MONITORING_NAMESPACE    =   "monitoring"
+        MONITORING_RELEASE      =   "monitoring"
     }
     stages{
+        stage("TEST") {
+            steps {
+                sh "echo 'run unit tests here will do later'"
+            }
+        }
         // Not using parallel block since i have slow pc but in future ill update the pipeline for faster builds :)
         // also for debugging ill update this stage with builds stage block for each service in future right now ill just test 
         stage("BUILD") {
@@ -45,7 +49,8 @@ pipeline{
 }
         stage("PUSH") {
             steps {
-                withCredentials([usernamePassword(credentialsId:"DockerHub-Creds", usernameVariable:"USER", passwordVariable:"PASS")]) {
+                withCredentials([usernamePassword(credentialsId:"DockerHub-Creds", 
+                usernameVariable:"USER", passwordVariable:"PASS")]) {
                     sh """
                         echo $PASS | docker login -u $USER --password-stdin
                         docker push ${USER_SERVICE_IMAGE}:${TAG}
@@ -64,11 +69,8 @@ pipeline{
                 withCredentials([file(credentialsId: "kubeconfig", variable: "KUBECONFIG")]) {
                     sh """
                         export KUBECONFIG=$KUBECONFIG
-                        
-			kubectl create ns ${MONITORING_NAMESPACE}
-				
-			helm upgrade --install ${HELM_RELEASE} ${HELM_CHART} \
-                            --namespace ${NAMESPACE} \
+                        helm upgrade --install ${HELM_RELEASE} ${HELM_CHART} \
+                            --namespace ${MICROSERVICES_NAMESPACE} \
                             --create-namespace \
                             --set apiGateway.image.tag=${TAG} \
                             --set userService.image.tag=${TAG} \
@@ -80,12 +82,28 @@ pipeline{
                 }
             }
         }
+        stage("MONITORING_STACK_DEPLOY") {
+            steps {
+                withCredentials([file(credentialsId: "kubeconfig", variable: "KUBECONFIG")]) {
+                    sh """
+                        export KUBECONFIG=$KUBECONFIG
+                        helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+                        helm repo update
+                        kubectl create namespace ${MONITORING_NAMESPACE} || true
+                        helm upgrade --install ${MONITORING_RELEASE} prometheus-community/kube-prometheus-stack \
+                        --namespace ${MONITORING_NAMESPACE} \
+                        --set grafana.adminPassword=admin123 \
+                        --set prometheus.prometheusSpec.retention=7d
+                    """
+                }
+            }
+        }
         stage("VERIFY DEPLOYMENT") {
             steps{
                  withCredentials([file(credentialsId:"kubeconfig", variable: "KUBECONFIG")]) {
                     sh """
                         export KUBECONFIG=$KUBECONFIG
-                        kubectl get all -n ecommerce
+                        kubectl get all -n ${MICROSERVICES_NAMESPACE}
                        """
                 }
             }

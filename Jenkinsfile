@@ -104,6 +104,7 @@ pipeline{
                     sh """
                         export KUBECONFIG=$KUBECONFIG
                         kubectl get all -n ${MICROSERVICES_NAMESPACE}
+                        kubectl get all -n ${MONITORING_NAMESPACE}
                        """
                 }
             }

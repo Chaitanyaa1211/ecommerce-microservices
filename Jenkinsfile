@@ -16,6 +16,7 @@ pipeline{
         HELM_RELEASE            = "ecommerce"
         HELM_CHART              = "./helm/ecommerce"
         NAMESPACE               = "ecommerce"
+	MONITORING_NAMESPACE	= "monitoring"
     }
     stages{
         // Not using parallel block since i have slow pc but in future ill update the pipeline for faster builds :)
@@ -63,7 +64,10 @@ pipeline{
                 withCredentials([file(credentialsId: "kubeconfig", variable: "KUBECONFIG")]) {
                     sh """
                         export KUBECONFIG=$KUBECONFIG
-                        helm upgrade --install ${HELM_RELEASE} ${HELM_CHART} \
+                        
+			kubectl create ns ${MONITORING_NAMESPACE}
+				
+			helm upgrade --install ${HELM_RELEASE} ${HELM_CHART} \
                             --namespace ${NAMESPACE} \
                             --create-namespace \
                             --set apiGateway.image.tag=${TAG} \
